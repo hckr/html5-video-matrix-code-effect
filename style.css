@@ -6,7 +6,7 @@
     display: inline-block;
 }
 
-#video-player {
+#video-player, #canvas {
     display: block;
     margin-top: 30px;
 }
