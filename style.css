@@ -1,0 +1,12 @@
+#local-video-selector {
+    display: none;
+}
+
+#load-youtube-video-form {
+    display: inline-block;
+}
+
+#video-player {
+    display: block;
+    margin-top: 30px;
+}
