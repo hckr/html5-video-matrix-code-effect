@@ -4,7 +4,7 @@ let videoPlayer = document.getElementById('video-player'),
     tempCtx = tempCanvas.getContext('2d'),
     canvas = document.getElementById('canvas'),
     ctx = canvas.getContext('2d'),
-    blockSize = 10,    
+    blockSize = 10,
     availableCharacters = '१२३४५६७८९अरतयपसदगहजकलङषचवबनमआथय़फशधघझखळक्षछभणऒθωερτψυιοπασδφγηςκλζχξωβνμΘΩΨΠΣΔΦΓΗςΛΞЯЫУИПДФЧЙЛЗЦБ',
     charactersOnCanvas = [];
 
@@ -42,28 +42,60 @@ function getPossibleRandomCharacterAt(pos) {
            getCharacterAt(pos);
 }
 
+let columns = Math.floor(videoPlayer.width / blockSize),
+    rows = Math.floor(videoPlayer.height / blockSize),
+    trailHeads = [], // y position for each subsequent column
+    trailLength = 20,
+    greenChange = Math.floor(255 / (trailLength * 2)),
+    otherChange = Math.floor(255 / (trailLength));
+
+for (let i = 0; i < columns; ++i) {
+    trailHeads[i] = 0;
+}
+
+setInterval(function updateTrailHeadsLoop() {
+    for (let i = 0; i < columns; ++i) {
+        trailHeads[i] += 1;
+        if (trailHeads[i] >= rows + trailLength) {
+            trailHeads[i] = -1 * Math.floor(Math.random() * rows * 40);
+        }
+    }
+}, 33);
+
+function getFillStyle(column, row, r, g, b) {
+    let gray = Math.min(r, g, b),
+        distanceFromTrailHead = trailHeads[column] - row,
+        newR = 0,
+        newG = gray,
+        newB = 0;
+    if (distanceFromTrailHead >= 0 && distanceFromTrailHead < trailLength) {
+        newG = 255 - distanceFromTrailHead * greenChange;
+        newR = newB = 255 - distanceFromTrailHead * otherChange;
+    }
+    return `rgb(${newR}, ${newG}, ${newB})`;
+}
+
 videoPlayer.addEventListener('play',
     () => {
-        tempCanvas.width = videoPlayer.width / blockSize;
-        tempCanvas.height = videoPlayer.height / blockSize;
+        tempCanvas.width = columns;
+        tempCanvas.height = rows;
 
         requestAnimationFrame(function draw() {
             tempCtx.drawImage(videoPlayer, 0, 0, tempCanvas.width, tempCanvas.height);
             let imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
             ctx.fillStyle = 'rgb(0, 10, 0)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            let y = -1;
+            let row = -1;
             for (let i = 0, pos = 0; i < imageData.length; i += 4, ++pos) {
-                let x = (pos % tempCanvas.width) * blockSize;
-                if (x == 0) {
-                    y += blockSize;
+                let column = pos % tempCanvas.width;
+                if (column == 0) {
+                    row += 1;
                 }
                 let r = imageData[i],
                     g = imageData[i+1],
-                    b = imageData[i+2],
-                    gray = Math.min(r, g, b);
-                ctx.fillStyle = `rgb(0, ${gray}, 0)`;
-                ctx.fillText(getPossibleRandomCharacterAt(pos), x, y);
+                    b = imageData[i+2];
+                ctx.fillStyle = getFillStyle(column, row, r, g, b);
+                ctx.fillText(getPossibleRandomCharacterAt(pos), column * blockSize, row * blockSize);
             }
             requestAnimationFrame(draw);
         });
