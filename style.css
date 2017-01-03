@@ -1,3 +1,20 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    text-align: center;
+    color: #dfd;
+    background: rgb(0, 10, 0);
+}
+
+#header {
+    padding: 10px 20px;
+    color: rgb(0, 10, 0);
+    background: #efe;
+}
+
 #local-video-selector {
     display: none;
 }
@@ -6,7 +23,17 @@
     display: inline-block;
 }
 
-#video-player, #canvas {
+canvas {
+    margin: 0 auto;
+}
+
+#canvas-container {
     display: block;
     margin-top: 30px;
+    overflow: hidden;
+}
+
+video {
+    position: absolute;
+    left: -9999px;
 }
