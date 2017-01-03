@@ -9,6 +9,11 @@ html {
     background: rgb(0, 10, 0);
 }
 
+h1 {
+    font: 24px monospace;
+    margin: 0 0 10px;
+}
+
 #header {
     padding: 10px 20px;
     color: rgb(0, 10, 0);
@@ -17,10 +22,6 @@ html {
 
 #local-video-selector {
     display: none;
-}
-
-#load-youtube-video-form {
-    display: inline-block;
 }
 
 canvas {
