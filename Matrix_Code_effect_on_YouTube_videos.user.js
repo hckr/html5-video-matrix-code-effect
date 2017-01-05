@@ -2,7 +2,7 @@
 // @name        Matrix Code effect on YouTube videos
 // @namespace   hckr
 // @description Adds a button to enable Matrix Code effect on any YouTube video (if in HTML 5 mode)
-// @include     https://www.youtube.com/watch?v=*
+// @include     https://www.youtube.com/*
 // @version     0.1
 // @grant       none
 // ==/UserScript==
@@ -35,14 +35,33 @@ let css = `
     document.getElementsByTagName('head')[0].appendChild(styleTag);
 
     toggleButtonTag.id = 'toggle-matrix-effect';
-    setButtonText();
-    document.getElementById('watch-headline-title').appendChild(toggleButtonTag);
+
+    toggleButtonTag.addEventListener('click', () => {
+        effectOn = !effectOn;
+        setButtonText();
+    });
 
 function setButtonText() {
     toggleButtonTag.innerHTML = 'Matrix effect ' + (effectOn ? 'on' : 'off');
 }
 
-toggleButtonTag.addEventListener('click', () => {
-    effectOn = !effectOn;
+function newVideoLoaded() {
+    effectOn = false;
     setButtonText();
+    document.getElementById('watch-headline-title').appendChild(toggleButtonTag);
+}
+
+if (window.location.href.startsWith('https://www.youtube.com/watch')) {
+    newVideoLoaded();
+}
+
+let observer = new MutationObserver(records => {
+    for (let record of records) {
+        for (let node of record.removedNodes) {
+            if (node.id == 'progress' && window.location.href.startsWith('https://www.youtube.com/watch')) {
+                newVideoLoaded();
+            }
+        }
+    }
 });
+observer.observe(document.body, { childList: true });
