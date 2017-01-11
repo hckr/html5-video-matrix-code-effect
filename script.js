@@ -28,19 +28,21 @@ navigator.getUserMedia = navigator.getUserMedia ||
 document.getElementById('from-webcam').addEventListener('click', () => {
     prepareForNewAnimation();
     navigator.getUserMedia({ video: true }, stream => {
-        stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(stream), c => canvasContainer.appendChild(c));
+        stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(stream), createAnimationCallback);
         cleanupFunction = function() {
             for (let track of stream.getTracks()) {
                 track.stop();
             }
         };
-    }, () => {});
-}, false);
+    }, () => {
+        alert("Can't access webcam. Are you sure you have one? ;)");
+    });
+});
 
 document.getElementById('select-video').addEventListener('click', () => {
     prepareForNewAnimation();
     localVideoSelector.click()
-}, false);
+});
 
 localVideoSelector.addEventListener('change', function() {
     let file = this.files[0];
@@ -48,12 +50,17 @@ localVideoSelector.addEventListener('change', function() {
         alert(`Unfortunately this browser can't play file of type ${file.type}.`);
         return;
     }
-    stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(file), c => canvasContainer.appendChild(c));
+    stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(file), createAnimationCallback);
     cleanupFunction = function() {
         localVideoSelector.type = '';
         localVideoSelector.type = 'file';
     };
-}, false);
+});
+
+function createAnimationCallback(canvas) {
+    canvasContainer.appendChild(canvas);
+    location.hash = canvas.id = "player"; // scroll to player
+}
 
 function createMatrixPlayer(videoSrc, callback) {
     let videoPlayer = document.createElement('video'),
@@ -151,7 +158,7 @@ function createMatrixPlayer(videoSrc, callback) {
                 }
             }
         }, 20);
-    }, false);
+    });
 
     videoPlayer.src = videoSrc;
     videoPlayer.autoplay = true;
