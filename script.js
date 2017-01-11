@@ -1,10 +1,13 @@
 let localVideoSelector = document.getElementById('local-video-selector'),
-    canvasContainer = document.getElementById('canvas-container'),
+    playerContainer = document.getElementById('player-container'),
+    downloadFrameLink = document.getElementById('download-frame-link'),
     blockSize = 10,
     availableCharacters = '१२३४५६७८९अरतयपसदगहजकलङषचवबनमआथय़फशधघझखळक्षछभणऒθωερτψυιοπασδφγηςκλζχξωβνμΘΩΨΠΣΔΦΓΗςΛΞЯЫУИПДФЧЙЛЗЦБ',
     trailLength = 20,
     greenChange = Math.floor(255 / (trailLength * 2)),
     otherChange = Math.floor(255 / (trailLength)),
+    currentCanvas,
+    currentVideo,
     stopPreviousAnimation,
     cleanupFunction;
 
@@ -12,12 +15,14 @@ function prepareForNewAnimation() {
     if (stopPreviousAnimation) {
         stopPreviousAnimation();
         stopPreviousAnimation = undefined;
-        canvasContainer.innerHTML = '';
+        playerContainer.innerHTML = '';
     }
     if (cleanupFunction) {
         cleanupFunction();
         cleanupFunction = undefined;
     }
+    currentCanvas = undefined;
+    currentVideo = undefined;
 }
 
 navigator.getUserMedia = navigator.getUserMedia ||
@@ -44,6 +49,22 @@ document.getElementById('select-video').addEventListener('click', () => {
     localVideoSelector.click()
 });
 
+document.getElementById('download-frame').addEventListener('click', () => {
+    if (currentCanvas) {
+        downloadFrameLink.href = currentCanvas.toDataURL("image/png");
+        downloadFrameLink.click();
+    }
+});
+
+document.getElementById('restart-video').addEventListener('click', () => {
+    if (currentVideo) {
+        currentVideo.currentTime = 0;
+        currentVideo.play();
+    }
+});
+
+document.getElementById('reset-player').addEventListener('click', prepareForNewAnimation);
+
 localVideoSelector.addEventListener('change', function() {
     let file = this.files[0];
     if (document.createElement('video').canPlayType(file.type) === '') {
@@ -57,8 +78,10 @@ localVideoSelector.addEventListener('change', function() {
     };
 });
 
-function createAnimationCallback(canvas) {
-    canvasContainer.appendChild(canvas);
+function createAnimationCallback(canvas, video) {
+    currentCanvas = canvas;
+    currentVideo = video;
+    playerContainer.appendChild(canvas);
     location.hash = canvas.id = "player"; // scroll to player
 }
 
@@ -128,7 +151,8 @@ function createMatrixPlayer(videoSrc, callback) {
         requestAnimationFrame(function draw() {
             tempCtx.drawImage(videoPlayer, 0, 0, tempCanvas.width, tempCanvas.height);
             let imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height).data;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgb(0, 10, 0)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             let row = -1;
             for (let i = 0, pos = 0; i < imageData.length; i += 4, ++pos) {
                 let column = pos % tempCanvas.width;
@@ -162,9 +186,9 @@ function createMatrixPlayer(videoSrc, callback) {
 
     videoPlayer.src = videoSrc;
     videoPlayer.autoplay = true;
-    canvasContainer.appendChild(videoPlayer);
+    playerContainer.appendChild(videoPlayer);
 
-    callback(canvas);
+    callback(canvas, videoPlayer);
 
     return () => {
         shouldStopDrawing = true;

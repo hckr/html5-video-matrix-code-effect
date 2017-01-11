@@ -41,6 +41,13 @@ video {
     max-height: 100%;
 }
 
+#player-controls {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+}
+
 @media all and (orientation: portrait) {
 
 video {

@@ -13,7 +13,13 @@
         There will be also <a href="Matrix_Code_effect_on_YouTube_videos.user.js">a userscript for YouTube</a> (not yet usable).
     </div>
     <input id="local-video-selector" type="file" accept="video/*">
-    <div id="canvas-container"></div>
+    <div id="player-container"></div>
+    <div id="player-controls">
+        <a id="download-frame-link" download="frame.png"></a>
+        <button id="download-frame">Save current frame as image</button>
+        <button id="restart-video">Restart video</button>
+        <button id="reset-player">Unload video</button>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
