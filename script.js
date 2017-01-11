@@ -5,17 +5,37 @@ let localVideoSelector = document.getElementById('local-video-selector'),
     trailLength = 20,
     greenChange = Math.floor(255 / (trailLength * 2)),
     otherChange = Math.floor(255 / (trailLength)),
-    stopPreviousAnimation;
+    stopPreviousAnimation,
+    cleanupFunction;
 
 function prepareForNewAnimation() {
     if (stopPreviousAnimation) {
         stopPreviousAnimation();
-        canvasContainer.innerHTML = '';
-        localVideoSelector.type = '';
-        localVideoSelector.type = 'file';
         stopPreviousAnimation = undefined;
+        canvasContainer.innerHTML = '';
+    }
+    if (cleanupFunction) {
+        cleanupFunction();
+        cleanupFunction = undefined;
     }
 }
+
+navigator.getUserMedia = navigator.getUserMedia ||
+                         navigator.webkitGetUserMedia ||
+                         navigator.mozGetUserMedia ||
+                         navigator.msGetUserMedia;
+
+document.getElementById('from-webcam').addEventListener('click', () => {
+    prepareForNewAnimation();
+    navigator.getUserMedia({ video: true }, stream => {
+        stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(stream), c => canvasContainer.appendChild(c));
+        cleanupFunction = function() {
+            for (let track of stream.getTracks()) {
+                track.stop();
+            }
+        };
+    }, () => {});
+}, false);
 
 document.getElementById('select-video').addEventListener('click', () => {
     prepareForNewAnimation();
@@ -29,6 +49,10 @@ localVideoSelector.addEventListener('change', function() {
         return;
     }
     stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(file), c => canvasContainer.appendChild(c));
+    cleanupFunction = function() {
+        localVideoSelector.type = '';
+        localVideoSelector.type = 'file';
+    };
 }, false);
 
 function createMatrixPlayer(videoSrc, callback) {
