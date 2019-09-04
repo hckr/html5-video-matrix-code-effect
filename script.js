@@ -25,23 +25,20 @@ function prepareForNewAnimation() {
     currentVideo = undefined;
 }
 
-navigator.getUserMedia = navigator.getUserMedia ||
-                         navigator.webkitGetUserMedia ||
-                         navigator.mozGetUserMedia ||
-                         navigator.msGetUserMedia;
-
-document.getElementById('from-webcam').addEventListener('click', () => {
+document.getElementById('from-webcam').addEventListener('click', async () => {
     prepareForNewAnimation();
-    navigator.getUserMedia({ video: true }, stream => {
-        stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(stream), createAnimationCallback);
+    try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stopPreviousAnimation = createMatrixPlayer(mediaStream, createAnimationCallback);
         cleanupFunction = function() {
             for (let track of stream.getTracks()) {
                 track.stop();
             }
         };
-    }, () => {
-        alert("Can't access webcam. Are you sure you have one? ;)");
-    });
+    } catch (err) {
+        console.error(err)
+        alert(`Can't access webcam. Are you sure you have one? ;)\n\n(${err.name}: ${err.message})`);
+    }
 });
 
 document.getElementById('select-video').addEventListener('click', () => {
@@ -71,7 +68,7 @@ localVideoSelector.addEventListener('change', function() {
         alert(`Unfortunately this browser can't play file of type ${file.type}.`);
         return;
     }
-    stopPreviousAnimation = createMatrixPlayer(URL.createObjectURL(file), createAnimationCallback);
+    stopPreviousAnimation = createMatrixPlayer(file, createAnimationCallback);
     cleanupFunction = function() {
         localVideoSelector.type = '';
         localVideoSelector.type = 'file';
@@ -85,7 +82,7 @@ function createAnimationCallback(canvas, video) {
     location.hash = canvas.id = "player"; // scroll to player
 }
 
-function createMatrixPlayer(videoSrc, callback) {
+function createMatrixPlayer(srcObject, callback) {
     let videoPlayer = document.createElement('video'),
         tempCanvas = document.createElement('canvas'),
         tempCtx = tempCanvas.getContext('2d'),
@@ -184,7 +181,15 @@ function createMatrixPlayer(videoSrc, callback) {
         }, 20);
     });
 
-    videoPlayer.src = videoSrc;
+    try {
+        if ('srcObject' in videoPlayer) {
+            videoPlayer.srcObject = srcObject;
+        } else {
+            throw 'fallback in catch'
+        }
+    } catch {
+        videoPlayer.src = URL.createObjectURL(srcObject)
+    }
     videoPlayer.autoplay = true;
     playerContainer.appendChild(videoPlayer);
 
